@@ -1,24 +1,25 @@
 apiVersion: v1
 kind: ConfigMap 
 metadata:
-  name: catalogue
+  name: cart
   namespace: roboshop
   labels:
-    component: catalogue
+    component: cart
     project: roboshop
     tier: app
 data: 
-  MONGO: "true" 
-  MONGO_URL: "mongodb://mongodb:27017/catalogue"
+  REDIS_HOST: "redis" 
+  CATALOGUE_HOST: "catalogue" 
+  CATALOGUE_PORT: "8080"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalogue
+  name: cart
   namespace: roboshop
   # deployment labels
   labels:
-    component: catalogue
+    component: cart
     project: roboshop
     tier: app
 spec:
@@ -26,20 +27,20 @@ spec:
   # These are the labels replica set use to create pod replicas, this should match pod labels
   selector:
     matchLabels:
-      component: catalogue
+      component: cart
       project: roboshop
       tier: app
   # This is pod definition
   template:
     metadata:
       labels:
-        component: catalogue
+        component: cart
         project: roboshop
         tier: app
     spec:
       containers:
-      - name: catalogue
-        image: govardhanxo/catalogue:v1
+      - name: cart
+        image: govardhanxo/cart:v1
         resources:
           requests:
             cpu: "50m"
@@ -49,20 +50,20 @@ spec:
             memory: "256Mi"
         envFrom: 
         - configMapRef:
-            name: catalogue 
+            name: cart 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: catalogue
+  name: cart
   namespace: roboshop
   labels:
-    component: catalogue
+    component: cart
     project: roboshop
     tier: app
 spec:
   selector:
-    component: catalogue
+    component: cart 
     project: roboshop
     tier: app
   ports:
@@ -73,13 +74,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: catalogue
+  name: cart
   namespace: roboshop
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: catalogue
+    name: cart
   minReplicas: 1
   maxReplicas: 10
   metrics:
